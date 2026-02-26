@@ -1,0 +1,154 @@
+{% extends 'admin_side/default_admin.html' %}
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <h4 class="fw-bold mb-0">
+            <i class="bi bi-people me-2 text-primary"></i>
+            Manage Users
+        </h4>
+    </div>
+
+    <!-- Search -->
+    <div class="card shadow-sm border-0 rounded-4 mb-4">
+        <div class="card-body p-3">
+
+            <form method="GET" class="row g-3 align-items-center">
+
+                <div class="col-md-6">
+                    <input type="text"
+                           name="search"
+                           value="{{ search }}"
+                           class="form-control"
+                           placeholder="Search by name or email...">
+                </div>
+
+                <div class="col-md-6 d-flex gap-2">
+                    <button type="submit"
+                            class="btn btn-primary rounded-pill">
+                        <i class="bi bi-search me-1"></i> Search
+                    </button>
+
+                    <a href="{{ url_for('main.manage_users') }}"
+                       class="btn btn-outline-secondary rounded-pill">
+                        Reset
+                    </a>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+
+                    <thead class="table-light">
+                        <tr>
+                            <th>User ID</th>
+                            <th>User</th>
+                            <th>Phone</th>
+                            <th>Joined</th>
+                            <th>Forms</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for user in users.items %}
+                        <tr>
+
+                            <td>{{ user.user_id }}</td>
+
+                            <td>
+                                <div class="fw-semibold">{{ user.name }}</div>
+                                <small class="text-muted">{{ user.email }}</small>
+                            </td>
+
+                            <td>{{ user.phone }}</td>
+
+                            <td>
+                                {{ user.created_at.strftime('%d %b %Y') }}
+                            </td>
+
+                            <td>
+                                <span class="badge bg-info">
+                                    {{ user.forms|length }}
+                                </span>
+                            </td>
+
+                            <td class="text-end">
+                                <a href="{{ url_for('main.admin_view_user', user_id=user.id) }}"
+                                   class="btn btn-sm btn-outline-primary rounded-pill">
+                                    <i class="bi bi-eye me-1"></i>
+                                    View
+                                </a>
+                            </td>
+
+                        </tr>
+
+                        {% else %}
+                        <tr>
+                            <td colspan="6"
+                                class="text-center py-4 text-muted">
+                                No users found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if users.pages > 1 %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+
+            {% if users.has_prev %}
+            <li class="page-item">
+                <a class="page-link"
+                   href="{{ url_for('main.manage_users', page=users.prev_num, search=search) }}">
+                    Previous
+                </a>
+            </li>
+            {% endif %}
+
+            {% for p in users.iter_pages() %}
+                {% if p %}
+                <li class="page-item {% if p == users.page %}active{% endif %}">
+                    <a class="page-link"
+                       href="{{ url_for('main.manage_users', page=p, search=search) }}">
+                        {{ p }}
+                    </a>
+                </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if users.has_next %}
+            <li class="page-item">
+                <a class="page-link"
+                   href="{{ url_for('main.manage_users', page=users.next_num, search=search) }}">
+                    Next
+                </a>
+            </li>
+            {% endif %}
+
+        </ul>
+    </nav>
+    {% endif %}
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,181 @@
+{% extends 'admin_side/default_admin.html' %}
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- Profile Header -->
+    <div class="card shadow border-0 rounded-4 mb-4">
+        <div class="card-body p-4">
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center">
+
+                <div>
+                    <h4 class="fw-bold mb-1">
+                        <i class="bi bi-person-circle text-primary me-2"></i>
+                        {{ admin.name }}
+                    </h4>
+
+                    <p class="mb-1 text-muted">{{ admin.email }}</p>
+
+                    <div class="mb-2">
+                        <span class="badge bg-info text-dark text-uppercase">
+                            {{ admin.role }}
+                        </span>
+
+                        {% if admin.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-danger">Inactive</span>
+                        {% endif %}
+                    </div>
+
+                    <small class="text-muted">
+                        Admin ID: {{ admin.admin_id }}
+                    </small>
+                </div>
+
+                <div class="text-md-end mt-3 mt-md-0">
+                    <div class="fw-semibold">Joined On</div>
+                    <div>{{ admin.created_at.strftime('%d %b %Y') }}</div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- Update Profile -->
+        <div class="col-lg-6">
+            <div class="card shadow border-0 rounded-4 h-100">
+                <div class="card-body p-4">
+
+                    <h5 class="fw-semibold mb-3">
+                        <i class="bi bi-pencil-square me-2 text-primary"></i>
+                        Update Profile
+                    </h5>
+
+                    <form method="POST">
+
+                        <div class="mb-3">
+                            <label class="form-label">Admin ID</label>
+                            <input type="text"
+                                   class="form-control"
+                                   value="{{ admin.admin_id }}"
+                                   readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text"
+                                   name="name"
+                                   class="form-control"
+                                   value="{{ admin.name }}"
+                                   required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email Address</label>
+                            <input type="email"
+                                   name="email"
+                                   class="form-control"
+                                   value="{{ admin.email }}"
+                                   required>
+                        </div>
+
+                        <button type="submit"
+                                class="btn btn-primary w-100 rounded-pill">
+                            Save Changes
+                        </button>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Change Password -->
+        <div class="col-lg-6">
+            <div class="card shadow border-0 rounded-4 h-100">
+                <div class="card-body p-4">
+
+                    <h5 class="fw-semibold mb-3">
+                        <i class="bi bi-shield-lock me-2 text-primary"></i>
+                        Change Password
+                    </h5>
+
+                    <form method="POST"
+                          action="{{ url_for('main.admin_change_password') }}">
+
+                        <div class="mb-3">
+                            <label class="form-label">Current Password</label>
+                            <div class="input-group">
+                                <input type="password"
+                                       name="current_password"
+                                       class="form-control"
+                                       id="currentPass"
+                                       required>
+                                <button type="button"
+                                        class="btn btn-outline-secondary"
+                                        onclick="togglePassword('currentPass')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">New Password</label>
+                            <div class="input-group">
+                                <input type="password"
+                                       name="new_password"
+                                       class="form-control"
+                                       id="newPass"
+                                       required>
+                                <button type="button"
+                                        class="btn btn-outline-secondary"
+                                        onclick="togglePassword('newPass')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Confirm New Password</label>
+                            <div class="input-group">
+                                <input type="password"
+                                       name="confirm_password"
+                                       class="form-control"
+                                       id="confirmPass"
+                                       required>
+                                <button type="button"
+                                        class="btn btn-outline-secondary"
+                                        onclick="togglePassword('confirmPass')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit"
+                                class="btn btn-warning w-100 rounded-pill">
+                            Change Password
+                        </button>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    field.type = field.type === "password" ? "text" : "password";
+}
+</script>
+
+{% endblock %}

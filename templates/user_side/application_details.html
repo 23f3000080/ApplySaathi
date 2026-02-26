@@ -1,0 +1,336 @@
+{% extends "default.html" %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <!-- Page Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+        <div>
+            <h3 class="fw-bold text-primary mb-1">
+                {{ form.form_name }}
+            </h3>
+            <p class="text-secondary small mb-0">
+                Application ID: #{{ form.id }}
+            </p>
+        </div>
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Back
+        </a>
+    </div>
+
+    <div class="row">
+
+        <!-- LEFT COLUMN -->
+        <div class="col-lg-8">
+
+            <!-- Application Info Card -->
+            <div class="card shadow-sm border-0 rounded-3 mb-4">
+                <div class="card-body">
+
+                    <h5 class="fw-bold mb-3">Application Details</h5>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p class="mb-1 small text-secondary">Form Type</p>
+                            <p class="fw-semibold">{{ form.form_type }}</p>
+                        </div>
+
+                        <div class="col-md-6">
+                            <p class="mb-1 small text-secondary">Created On</p>
+                            <p class="fw-semibold">
+                                {{ form.created_at.strftime('%d %b %Y, %I:%M %p') }}
+                            </p>
+                        </div>
+                    </div>
+
+                    {% if form.description %}
+                    <div>
+                        <p class="mb-1 small text-secondary">Description</p>
+                        <div class="bg-light p-3 rounded-3">
+                            {{ form.description }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <!-- Documents Card -->
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body">
+            
+                    <h5 class="fw-bold mb-3">
+                        Uploaded Documents ({{ documents|length }})
+                    </h5>
+            
+                    {% if documents %}
+                    {% for doc in documents %}
+                    <div class="document-item d-flex justify-content-between align-items-center bg-light p-3 rounded-3 mb-2">
+            
+                        <!-- Left Side -->
+                        <div class="d-flex align-items-center document-info">
+            
+                            {% if doc.file_type and 'pdf' in doc.file_type %}
+                            <i class="fas fa-file-pdf text-danger fa-lg me-3"></i>
+                            {% elif doc.file_type and 'image' in doc.file_type %}
+                            <i class="fas fa-file-image text-primary fa-lg me-3"></i>
+                            {% else %}
+                            <i class="fas fa-file text-secondary fa-lg me-3"></i>
+                            {% endif %}
+            
+                            <div class="document-text">
+                                <div class="fw-semibold text-truncate">
+                                    {{ doc.document_name }}
+                                </div>
+                                <small class="text-secondary">
+                                    {{ (doc.document_size / 1024)|round(1) }} KB •
+                                    {{ doc.uploaded_at.strftime('%d %b %Y') }}
+                                </small>
+                            </div>
+            
+                        </div>
+            
+                        <!-- Right Side -->
+                        <a href="{{ url_for('static', filename=doc.file_path) }}" class="btn btn-sm btn-outline-primary view-btn"
+                            target="_blank">
+                            <i class="fas fa-download me-1"></i> View
+                        </a>
+            
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="text-center text-muted py-3">
+                        No documents uploaded.
+                    </div>
+                    {% endif %}
+            
+                </div>
+            </div>
+            
+            </div>
+
+        <!-- RIGHT COLUMN -->
+        <div class="col-lg-4">
+
+            <!-- Status Card -->
+            <div class="card shadow-sm border-0 rounded-3 mb-4">
+                <div class="card-body text-center">
+
+                    <h6 class="text-secondary mb-3">Application Status</h6>
+
+                    {% if form.status == "Approved" %}
+                        <span class="badge bg-success px-3 py-2">
+                            <i class="fas fa-check-circle me-1"></i> Approved
+                        </span>
+                    {% elif form.status == "Rejected" %}
+                        <span class="badge bg-danger px-3 py-2">
+                            <i class="fas fa-times-circle me-1"></i> Rejected
+                        </span>
+                    {% elif form.status == "Completed" %}
+                        <span class="badge bg-primary px-3 py-2">
+                            <i class="fas fa-flag-checkered me-1"></i> Completed
+                        </span>
+
+                        {% elif form.status == "Cancelled" %}
+                        <span class="badge bg-danger px-3 py-2">
+                            <i class="fas fa-ban me-1"></i> Cancelled
+                        </span>
+
+                    {% else %}
+                        <span class="badge bg-warning text-dark px-3 py-2">
+                            <i class="fas fa-clock me-1"></i> In Process
+                        </span>
+                    {% endif %}
+                    <!-- message -->
+                    {% if form.message %}
+                    <div class="mt-2">
+                        <small class="text-muted">Message:</small>
+                        <div class="fw-sm text-secondary">{{ form.message }}</div>
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <!-- Payment Section -->
+            <div class="card shadow-sm border-0 rounded-3 mb-4">
+                <div class="card-body text-center">
+            
+                    <h5 class="fw-bold mb-2 text-success">
+                        All Form Fill-up Only ₹49
+                    </h5>
+            
+                    <p class="small text-secondary mb-3">
+                        Pay securely via UPI to complete your application.
+                    </p>
+            
+                    {% if form.payment_status == "Paid" %}
+            
+                    <span class="badge bg-success px-3 py-2">
+                        <i class="fas fa-check-circle me-1"></i> Payment Completed
+                    </span>
+
+                    {% elif form.payment_status == "Pending Verification" %}
+                    <span class="badge bg-warning text-dark px-3 py-2">
+                        <i class="fas fa-hourglass-half me-1"></i> Payment Pending Verification
+                    </span>
+
+                    {% elif form.payment_status == "Rejected" %}
+                    <span class="badge bg-danger px-3 py-2">
+                        <i class="fas fa-times-circle me-1"></i> Payment Rejected
+                    </span>
+                    
+
+                     {% elif form.payment_status == "Refund will be processed" %}
+                    <span class="badge bg-warning text-dark px-3 py-2">
+                        <i class="fas fa-exclamation-triangle me-1"></i> Refund will be processed
+                    </span>
+                    {% else %}
+            
+                    <!-- QR Code -->
+                    <div class="mb-3">
+                        <img src="{{ url_for('static', filename='qr/my_qr_payment.jpeg') }}" class="img-fluid rounded shadow-sm"
+                            style="max-width:200px;">
+                    </div>
+            
+                    <!-- UPI ID -->
+                    <div class="mb-2">
+                        <strong>UPI ID:</strong><br>
+                        <span class="text-primary">9142125921@ybl</span>
+                    </div>
+            
+                    <!-- Mobile Number -->
+                    <div class="mb-3">
+                        <strong>Mobile:</strong><br>
+                        <span class="text-dark">+91 9142125921</span>
+                    </div>
+            
+                    <!-- Pay Button -->
+                    <a href="upi://pay?pa=9142125921@ybl&pn=ApplySaathi&am=49&cu=INR" class="btn btn-success btn-sm w-100 mb-2">
+                        <i class="fas fa-wallet me-1"></i> Pay ₹49 Now
+                    </a>
+            
+                    <!-- Confirm Button -->
+                        <button class="btn btn-outline-primary btn-sm w-100" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                            <i class="fas fa-check me-1"></i> I Have Paid
+                        </button>
+            
+                    {% endif %}
+            
+                </div>
+            </div>
+
+            <!-- Receipt -->
+            {% if form.recipt %}
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body text-center">
+
+                    <h6 class="text-secondary mb-3">Receipt</h6>
+
+                    <a href="{{ url_for('static', filename=form.recipt) }}"
+                       target="_blank"
+                       class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-receipt me-1"></i> View Receipt
+                    </a>
+
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Payment Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+
+      <form method="POST"
+            action="{{ url_for('main.submit_payment', form_id=form.id) }}"
+            enctype="multipart/form-data">
+
+        <div class="modal-header">
+          <h5 class="modal-title">Confirm Payment</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+
+          <!-- Payment Method -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Payment Method</label>
+            <select name="payment_method"
+                    class="form-control"
+                    id="paymentMethod"
+                    required>
+              <option value="" disabled selected>Select Method</option>
+              <option value="UPI">UPI</option>
+              <option value="GooglePay">Google Pay</option>
+              <option value="PhonePe">PhonePe</option>
+              <option value="Paytm">Paytm</option>
+              <option value="Cash">Cash</option>
+            </select>
+          </div>
+
+          <!-- Screenshot Upload -->
+          <div class="mb-3 d-none" id="screenshotField">
+            <label class="form-label fw-bold">
+              Upload Payment Screenshot
+            </label>
+            <input type="file"
+                   name="payment_screenshot"
+                   class="form-control"
+                   accept=".jpg,.jpeg,.png,.pdf">
+          </div>
+
+          <!-- Transaction ID -->
+          <div class="mb-3 d-none" id="transactionField">
+            <label class="form-label fw-bold">
+              Transaction ID (Optional)
+            </label>
+            <input type="text"
+                   name="transaction_id"
+                   class="form-control"
+                   placeholder="Enter UPI Ref ID">
+          </div>
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success w-100">
+            Submit Payment Details
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const methodSelect = document.getElementById("paymentMethod");
+    const screenshotField = document.getElementById("screenshotField");
+    const transactionField = document.getElementById("transactionField");
+
+    methodSelect.addEventListener("change", function () {
+
+        if (this.value === "Cash") {
+            screenshotField.classList.add("d-none");
+            transactionField.classList.add("d-none");
+        } else {
+            screenshotField.classList.remove("d-none");
+            transactionField.classList.remove("d-none");
+        }
+
+    });
+
+});
+</script>
+{% endblock %}

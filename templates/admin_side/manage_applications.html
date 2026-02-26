@@ -1,0 +1,187 @@
+{% extends 'admin_side/default_admin.html' %}
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <h4 class="fw-bold mb-0">
+            <i class="bi bi-folder-check me-2 text-primary"></i>
+            Manage Applications
+        </h4>
+    </div>
+
+    <!-- FILTER + SEARCH -->
+    <div class="card shadow-sm border-0 rounded-4 mb-4">
+        <div class="card-body p-3">
+
+            <form method="GET" class="row g-3 align-items-center">
+
+                <!-- Status Filter -->
+                <div class="col-md-3">
+                    <select name="status" class="form-select">
+                        {% set statuses = ["All", "Inprocess", "Approved", "Rejected", "Completed"] %}
+                        {% for s in statuses %}
+                            <option value="{{ s }}"
+                                {% if selected_status == s %}selected{% endif %}>
+                                {{ s }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Search Input -->
+                <div class="col-md-5">
+                    <input type="text"
+                           name="search"
+                           value="{{ search }}"
+                           class="form-control"
+                           placeholder="Search by user or form name...">
+                </div>
+
+                <!-- Buttons -->
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary rounded-pill">
+                        <i class="bi bi-search me-1"></i> Search
+                    </button>
+
+                    <a href="{{ url_for('main.manage_applications') }}"
+                       class="btn btn-outline-secondary rounded-pill">
+                        Reset
+                    </a>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Form</th>
+                            <th>User</th>
+                            <th>Status</th>
+                            <th>Payment</th>
+                            <th>Date</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for form in forms.items %}
+                        <tr>
+
+                            <td>{{ form.id }}</td>
+
+                            <td>
+                                <div class="fw-semibold">{{ form.form_name }}</div>
+                                <small class="text-muted">{{ form.form_type }}</small>
+                            </td>
+
+                            <td>
+                                <div class="fw-semibold">{{ form.user.name }}</div>
+                                <small class="text-muted">{{ form.user.email }}</small>
+                            </td>
+
+                            <td>
+                                <span class="badge
+                                    {% if form.status == 'Approved' %}
+                                        bg-success
+                                    {% elif form.status == 'Rejected' %}
+                                        bg-danger
+                                    {% elif form.status == 'Completed' %}
+                                        bg-primary
+                                    {% else %}
+                                        bg-warning text-dark
+                                    {% endif %}
+                                ">
+                                    {{ form.status }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="badge
+                                    {% if form.payment_status == 'Paid' %}
+                                        bg-success
+                                    {% else %}
+                                        bg-danger
+                                    {% endif %}
+                                ">
+                                    {{ form.payment_status }}
+                                </span>
+                            </td>
+
+                            <td>{{ form.created_at.strftime('%d %b %Y') }}</td>
+
+                            <td class="text-end">
+                                <a href="{{ url_for('main.admin_view_application', app_id=form.id) }}"
+                                   class="btn btn-sm btn-outline-primary rounded-pill">
+                                    <i class="bi bi-eye me-1"></i> View
+                                </a>
+                            </td>
+
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                No applications found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- PAGINATION -->
+    {% if forms.pages > 1 %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+
+            {% if forms.has_prev %}
+            <li class="page-item">
+                <a class="page-link"
+                   href="{{ url_for('main.manage_applications', page=forms.prev_num, status=selected_status, search=search) }}">
+                    Previous
+                </a>
+            </li>
+            {% endif %}
+
+            {% for p in forms.iter_pages() %}
+                {% if p %}
+                    <li class="page-item {% if p == forms.page %}active{% endif %}">
+                        <a class="page-link"
+                           href="{{ url_for('main.manage_applications', page=p, status=selected_status, search=search) }}">
+                            {{ p }}
+                        </a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if forms.has_next %}
+            <li class="page-item">
+                <a class="page-link"
+                   href="{{ url_for('main.manage_applications', page=forms.next_num, status=selected_status, search=search) }}">
+                    Next
+                </a>
+            </li>
+            {% endif %}
+
+        </ul>
+    </nav>
+    {% endif %}
+
+</div>
+
+{% endblock %}

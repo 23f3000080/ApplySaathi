@@ -1,0 +1,315 @@
+{% extends 'admin_side/default_admin.html' %}
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <h4 class="fw-bold mb-0">
+            <i class="bi bi-file-earmark-text me-2 text-primary"></i>
+            Application Details
+        </h4>
+
+        <span class="badge px-3 py-2 fs-6
+            {% if application.status == 'Approved' %}
+                bg-success
+            {% elif application.status == 'Rejected' %}
+                bg-danger
+            {% elif application.status == 'Completed' %}
+                bg-primary
+            {% else %}
+                bg-warning text-dark
+            {% endif %}
+        ">
+            {{ application.status }}
+        </span>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- LEFT SIDE -->
+        <div class="col-lg-8">
+
+            <!-- Basic Info -->
+            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                <div class="card-body p-4">
+
+                    <h5 class="fw-semibold mb-3">Application Information</h5>
+
+                    <div class="row">
+                        <div>
+                            <small class="text-muted">Application ID</small>
+                            <div class="fw-semibold">{{ application.id }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted">Form Type</small>
+                            <div class="fw-semibold">{{ application.form_type }}</div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted">Form Name</small>
+                            <div class="fw-semibold">{{ application.form_name }}</div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted">Submitted On</small>
+                            <div class="fw-semibold">
+                                {{ application.created_at.strftime('%d %b %Y, %I:%M %p') }}
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted">Payment Status</small>
+                            <div class="fw-semibold">
+                                <span class="badge 
+                                    {% if application.payment_status == 'Paid' %}
+                                        bg-success
+                                    {% else %}
+                                        bg-secondary
+                                    {% endif %}
+                                ">
+                                    {{ application.payment_status }}
+                                </span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    {% if application.description %}
+                    <hr>
+                    <div>
+                        <small class="text-muted">Description</small>
+                        <div class="mt-1">{{ application.description }}</div>
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <!-- User Info -->
+            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                <div class="card-body p-4">
+
+                    <h5 class="fw-semibold mb-3">Applicant Information</h5>
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted">Name</small>
+                            <div class="fw-semibold">{{ application.user.name }}</div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted">Email</small>
+                            <div class="fw-semibold">{{ application.user.email }}</div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted">Phone</small>
+                            <div class="fw-semibold">{{ application.user.phone }}</div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Documents -->
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4">
+
+                    <h5 class="fw-semibold mb-3">
+                        <i class="bi bi-folder2-open me-2 text-primary"></i>
+                        Uploaded Documents
+                    </h5>
+
+                    {% if application.documents %}
+                        {% for doc in application.documents %}
+                        <div class="d-flex justify-content-between align-items-center bg-light rounded-3 p-3 mb-2 flex-wrap">
+
+                            <div class="text-truncate" style="max-width: 70%;">
+                                <strong>{{ doc.document_name }}</strong><br>
+                                <small class="text-muted">
+                                    {{ doc.file_type }} • 
+                                    {{ (doc.document_size / 1024)|round(2) }} KB
+                                </small>
+                            </div>
+
+                            <a href="{{ url_for('static', filename=doc.file_path) }}"
+                               target="_blank"
+                               class="btn btn-sm btn-outline-primary rounded-pill">
+                                <i class="bi bi-eye me-1"></i> View
+                            </a>
+
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-muted">No documents uploaded.</div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- RIGHT SIDE -->
+        <div class="col-lg-4">
+
+            <!-- Payment Info -->
+            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                <div class="card-body p-4">
+            
+                    <h6 class="fw-semibold mb-3">
+                        <i class="bi bi-credit-card me-2 text-primary"></i>
+                        Payment Information
+                    </h6>
+            
+                    <p><strong>Method:</strong> {{ application.payment_method or 'N/A' }}</p>
+                    <p><strong>Transaction ID:</strong> {{ application.transaction_id or 'N/A' }}</p>
+            
+                    <p>
+                        <strong>Status:</strong>
+                        <span class="badge 
+                            {% if application.payment_status == 'Paid' %}
+                                bg-success
+                            {% else %}
+                                bg-danger
+                            {% endif %}
+                        ">
+                            {{ application.payment_status }}
+                        </span>
+                    </p>
+            
+                    {% if application.payment_screenshot %}
+                    <a href="{{ url_for('static', filename=application.payment_screenshot) }}" target="_blank"
+                        class="btn btn-sm btn-outline-secondary rounded-pill mb-3">
+                        <i class="bi bi-image me-1"></i> View Screenshot
+                    </a>
+                    {% endif %}
+            
+                    <!-- Toggle Payment Button -->
+                    <form method="POST" action="{{ url_for('main.toggle_payment_status', id=application.id) }}">
+            
+                        {% if application.payment_status == "Paid" %}
+                        <button type="submit" class="btn btn-danger rounded-pill w-100">
+                            <i class="bi bi-x-circle me-1"></i>
+                            Mark as Unpaid
+                        </button>
+                        {% else %}
+                        <button type="submit" class="btn btn-success rounded-pill w-100">
+                            <i class="bi bi-check-circle me-1"></i>
+                            Mark as Paid
+                        </button>
+                        {% endif %}
+            
+                    </form>
+            
+                </div>
+            </div>
+
+            <!-- Admin Action -->
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4">
+
+                    <h6 class="fw-semibold mb-3">
+                        <i class="bi bi-check2-square me-2 text-primary"></i>
+                        Action
+                    </h6>
+
+                    <form method="POST"
+                          action="{{ url_for('main.update_application_status', id=application.id) }}">
+
+                        <div class="mb-3">
+                            <textarea class="form-control"
+                                      name="message"
+                                      placeholder="Add message (optional)"
+                                      rows="3"></textarea>
+                        </div>
+
+                        <div class="d-grid gap-3">
+
+                            <button type="submit"
+                                    name="action"
+                                    value="Approved"
+                                    class="btn btn-success rounded-pill">
+                                <i class="bi bi-check-circle me-1"></i>
+                                Approve
+                            </button>
+
+                            <button type="submit"
+                                    name="action"
+                                    value="Rejected"
+                                    class="btn btn-danger rounded-pill">
+                                <i class="bi bi-x-circle me-1"></i>
+                                Reject
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+
+            <!-- Processed By -->
+            {% if application.filled_by_admin %}
+            <div class="card shadow-sm border-0 rounded-4 mt-4">
+                <div class="card-body p-3">
+                    <small class="text-muted">Processed By</small>
+                    <div class="fw-semibold">
+                        {{ application.filled_by_admin.name }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Upload Receipt -->
+            {% if application.status in ['Approved', 'Completed'] %}
+            <div class="card shadow-sm border-0 rounded-4 mt-4">
+                <div class="card-body p-4">
+            
+                    <h6 class="fw-semibold mb-3">
+                        <i class="bi bi-receipt me-2 text-primary"></i>
+                        Upload Final Receipt
+                    </h6>
+            
+                    {% if application.recipt %}
+                    <div class="mb-3">
+                        <a href="{{ url_for('static', filename=application.recipt) }}" target="_blank"
+                            class="btn btn-outline-success btn-sm rounded-pill">
+                            <i class="bi bi-eye me-1"></i> View Uploaded Receipt
+                        </a>
+                    </div>
+                    {% endif %}
+            
+                    <form method="POST" action="{{ url_for('main.upload_receipt', id=application.id) }}"
+                        enctype="multipart/form-data">
+            
+                        <div class="mb-3">
+                            <input type="file" name="receipt" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required>
+                            <small class="text-muted">
+                                Allowed: PDF, JPG, PNG
+                            </small>
+                        </div>
+            
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary rounded-pill">
+                                <i class="bi bi-upload me-1"></i>
+                                Upload Receipt
+                            </button>
+                        </div>
+            
+                    </form>
+            
+                </div>
+            </div>
+            {% endif %}
+            
+            </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

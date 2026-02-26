@@ -1,0 +1,128 @@
+<nav class="navbar bg-dark navbar-expand-lg navbar-dark bg-gradient shadow-lg py-2">
+    <div class="container-fluid px-3 px-md-4">
+
+        <!-- Brand with icon -->
+        <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ url_for('main.admin_dashboard') }}">
+            <span class="bg-primary bg-opacity-20 p-2 rounded-3 me-2">
+                <i class="fas fa-cog text-success"></i>
+            </span>
+            <!-- <span class="d-none d-sm-inline">Apply Saathi</span> -->
+            <span class="" style="color: orange;">Apply</span>
+            <span class="text-success">Saathi</span>
+        </a>
+
+        <!-- Mobile Toggle with animation -->
+        <button class="navbar-toggler border-0 shadow-none" type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#adminNavbar"
+                aria-controls="adminNavbar"
+                aria-expanded="false"
+                aria-label="Toggle navigation"
+                style="outline: none;">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Navbar Items -->
+        <div class="collapse navbar-collapse" id="adminNavbar">
+
+            <!-- Left Side with hover effects -->
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 mt-2 mt-lg-0">
+                <li class="nav-item mx-lg-1">
+                    <a class="nav-link px-3 py-2 rounded-3 d-flex align-items-center {% if request.endpoint == 'main.admin_dashboard' %}active bg-primary bg-opacity-25{% endif %}"
+                       href="{{ url_for('main.admin_dashboard') }}"
+                       style="transition: all 0.2s ease;">
+                        <i class="fas fa-home me-2"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+
+                <li class="nav-item mx-lg-1">
+                    <a class="nav-link px-3 py-2 rounded-3 d-flex align-items-center position-relative {% if request.endpoint == 'main.manage_applications' %}active bg-primary bg-opacity-25{% endif %}"
+                       href="{{ url_for('main.manage_applications') }}"
+                       style="transition: all 0.2s ease;">
+                        <i class="fas fa-file-alt me-2"></i>
+                        <span>Applications</span>
+                        <!-- Optional badge for pending count -->
+                        {% if pending_applications %}
+                        <span class="badge bg-danger ms-2 rounded-pill">{{ pending_applications }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+
+                <li class="nav-item mx-lg-1">
+                    <a class="nav-link px-3 py-2 rounded-3 d-flex align-items-center {% if request.endpoint == 'main.manage_users' %}active bg-primary bg-opacity-25{% endif %}"
+                       href="{{ url_for('main.manage_users') }}"
+                       style="transition: all 0.2s ease;">
+                        <i class="fas fa-users me-2"></i>
+                        <span>Users</span>
+                    </a>
+                </li>
+
+                {% if current_user.role == "superadmin" %}
+                <li class="nav-item mx-lg-1">
+                    <a class="nav-link px-3 py-2 rounded-3 d-flex align-items-center {% if request.endpoint == 'main.manage_admins' %}active bg-primary bg-opacity-25{% endif %}"
+                       href="{{ url_for('main.manage_admins') }}"
+                       style="transition: all 0.2s ease;">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        <span>Admins</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+
+            <!-- Right Side with enhanced profile section -->
+            <ul class="navbar-nav ms-auto mt-2 mt-lg-0">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center px-3 py-2 rounded-3" 
+                       href="#" 
+                       id="profileDropdown" 
+                       role="button" 
+                       data-bs-toggle="dropdown" 
+                       aria-expanded="false"
+                       style="transition: all 0.2s ease;">
+                        <!-- User avatar placeholder -->
+                        <span class="user-avatar d-flex align-items-center justify-content-center me-2">
+                            {{ current_user.name.split()[0][0] | upper }}
+                            {% if current_user.name.split()|length > 1 %}
+                            {{ current_user.name.split()[1][0] | upper }}
+                            {% endif %}
+                        </span>
+                        <span class="d-none d-md-inline">{{ current_user.name }}</span>
+                        <span class="d-md-none">Profile</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end bg-dark border-0 shadow-lg mt-2" 
+                        style="min-width: 200px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+                        <li>
+                            <!-- profile icon -->
+                            <i class="fas fa-user-circle me-2 text-primary" style="width: 20px;"></i>
+
+                            <a class="dropdown-item text-light py-2 d-flex align-items-center" 
+                               href="{{ url_for('main.admin_profile') }}"
+                               style="transition: all 0.2s ease;">
+                                <i class="fas fa-user-circle me-2" style="width: 20px;"></i>
+                                Profile
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item text-light py-2 d-flex align-items-center" 
+                               href="{{ url_for('main.appearance_settings') }}"
+                               style="transition: all 0.2s ease;">
+                                <i class="fas fa-cog me-2" style="width: 20px;"></i>
+                                Settings
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider bg-secondary opacity-25"></li>
+                        <li>
+                            <a class="dropdown-item text-danger py-2 d-flex align-items-center" 
+                               href="{{ url_for('main.logout') }}"
+                               style="transition: all 0.2s ease;">
+                                <i class="fas fa-sign-out-alt me-2" style="width: 20px;"></i>
+                                Logout
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

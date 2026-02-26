@@ -1,0 +1,152 @@
+{% extends 'admin_side/default_admin.html' %}
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- USER HEADER -->
+    <div class="card shadow-sm border-0 rounded-4 mb-4">
+        <div class="card-body p-4">
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center">
+
+                <div>
+                    <h4 class="fw-bold mb-1">
+                        <i class="bi bi-person-circle me-2 text-primary"></i>
+                        {{ user.name }}
+                    </h4>
+                    <p class="mb-1 text-muted">{{ user.email }}</p>
+                    <p class="mb-0 text-muted">Phone: {{ user.phone }}</p>
+                </div>
+
+                <div class="text-md-end mt-3 mt-md-0">
+                    <div class="fw-semibold">Joined</div>
+                    <div>{{ user.created_at.strftime('%d %b %Y') }}</div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-3">
+                <h5 class="fw-bold">{{ total_forms }}</h5>
+                <small class="text-muted">Total Forms</small>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-3">
+                <h5 class="fw-bold text-warning">{{ inprocess }}</h5>
+                <small class="text-muted">In Process</small>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-3">
+                <h5 class="fw-bold text-success">{{ approved }}</h5>
+                <small class="text-muted">Approved</small>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-3">
+                <h5 class="fw-bold text-primary">{{ completed }}</h5>
+                <small class="text-muted">Completed</small>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FORMS TABLE -->
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Form Name</th>
+                            <th>Status</th>
+                            <th>Payment</th>
+                            <th>Date</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for form in forms %}
+                        <tr>
+
+                            <td>{{ form.id }}</td>
+
+                            <td>
+                                <div class="fw-semibold">{{ form.form_name }}</div>
+                                <small class="text-muted">{{ form.form_type }}</small>
+                            </td>
+
+                            <td>
+                                <span class="badge
+                                    {% if form.status == 'Approved' %}
+                                        bg-success
+                                    {% elif form.status == 'Rejected' %}
+                                        bg-danger
+                                    {% elif form.status == 'Completed' %}
+                                        bg-primary
+                                    {% else %}
+                                        bg-warning text-dark
+                                    {% endif %}
+                                ">
+                                    {{ form.status }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="badge
+                                    {% if form.payment_status == 'Paid' %}
+                                        bg-success
+                                    {% else %}
+                                        bg-danger
+                                    {% endif %}
+                                ">
+                                    {{ form.payment_status }}
+                                </span>
+                            </td>
+
+                            <td>
+                                {{ form.created_at.strftime('%d %b %Y') }}
+                            </td>
+
+                            <td class="text-end">
+                                <a href="{{ url_for('main.admin_view_application', app_id=form.id) }}"
+                                   class="btn btn-sm btn-outline-primary rounded-pill">
+                                    <i class="bi bi-eye me-1"></i> View
+                                </a>
+                            </td>
+
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                No forms submitted yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

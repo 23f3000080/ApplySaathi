@@ -1,0 +1,52 @@
+<footer class="footer-custom mt-5 pt-5 pb-4">
+    <div class="container">
+        <div class="row gy-4">
+            <!-- Brand Section -->
+            <div class="col-lg-4 col-md-6">
+                <h5 class="footer-brand fw-bold mb-3">Form<span class="text-accent">Mitra</span></h5>
+                <p class="text-muted-custom">Your trusted platform for hassle-free form filling. We simplify your applications so you can focus on your goals.</p>
+                <div class="social-links d-flex gap-3 mt-4">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="col-lg-2 col-md-6 ms-auto">
+                <h6 class="text-uppercase fw-bold mb-4">Quick Links</h6>
+                <ul class="list-unstyled footer-links">
+                    <li><a href="{{ url_for('main.home') }}">Home</a></li>
+                    <li><a href="{{ url_for('main.contact') }}">Contact Us</a></li>
+                    <li><a href="{{ url_for('main.login') }}">Member Login</a></li>
+                    <li><a href="{{ url_for('main.register') }}">Join Now</a></li>
+                </ul>
+            </div>
+
+            <!-- Newsletter/Contact -->
+            <div class="col-lg-4 col-md-12">
+                <h6 class="text-uppercase fw-bold mb-4">Stay Updated</h6>
+                <p class="text-muted-custom small mb-3">Subscribe to get the latest form updates.</p>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control bg-transparent text-white border-secondary" placeholder="Email address">
+                    <button class="btn btn-accent" type="button">Join</button>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-4 border-secondary opacity-25">
+
+        <div class="row align-items-center">
+            <div class="col-md-6 text-center text-md-start">
+                <p class="mb-0 text-muted-custom small">&copy; {{ current_year }} FormMitra. All rights reserved.</p>
+            </div>
+            <div class="col-md-6 text-center text-md-end">
+                <ul class="list-inline mb-0 small">
+                    <li class="list-inline-item"><a href="#" class="text-muted-custom text-decoration-none">Privacy Policy</a></li>
+                    <li class="list-inline-item"><a href="#" class="text-muted-custom text-decoration-none ms-3">Terms of Service</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</footer>

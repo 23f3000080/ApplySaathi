@@ -1,0 +1,120 @@
+{% extends "default.html" %}
+{% block content %}
+
+<section class="terms-section py-5">
+    <div class="container">
+
+        <!-- Page Header -->
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Terms & Conditions</h2>
+            <p class="text-muted">
+                Please read these terms carefully before using Apply Saathi.
+            </p>
+        </div>
+
+        <!-- Terms Card -->
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4 p-md-5">
+
+                <div class="terms-content">
+
+                    <h5 class="fw-bold mt-4">1. Acceptance of Terms</h5>
+                    <p>
+                        By accessing and using Apply Saathi, you agree to comply with and
+                        be bound by these Terms & Conditions.
+                    </p>
+
+                    <h5 class="fw-bold mt-4">2. Service Description</h5>
+                    <p>
+                        Apply Saathi provides assistance in filling government, exam,
+                        scholarship, and other application forms. We simplify the process,
+                        but final approval depends on respective authorities.
+                    </p>
+
+                    <h5 class="fw-bold mt-4">3. Service Charges</h5>
+                    <p>
+                        A service charge (e.g., ₹49) is applicable for form-filling support.
+                        Government or official fees are separate and must be paid by the user.
+                    </p>
+
+                    <h5 class="fw-bold mt-4">4. User Responsibility</h5>
+                    <p>
+                        Users must provide accurate and genuine information. We are not
+                        responsible for rejection due to incorrect or false information provided by the user.
+                    </p>
+
+                    <h5 class="fw-bold mt-4">5. Payment Policy</h5>
+                    <p>
+                        Payments made for services are subject to verification.
+                        Refunds (if applicable) will be processed as per our policy.
+                    </p>
+
+                    <h5 class="fw-bold mt-4">6. Privacy & Data Protection</h5>
+                    <p>
+                        Your documents and personal data are handled securely and
+                        are not shared with unauthorized third parties.
+                    </p>
+
+                    <h5 class="fw-bold mt-4">7. Limitation of Liability</h5>
+                    <p>
+                        Apply Saathi shall not be liable for delays, rejection,
+                        or changes made by government authorities or exam boards.
+                    </p>
+
+                    <h5 class="fw-bold mt-4">8. Changes to Terms</h5>
+                    <p>
+                        We reserve the right to update these terms at any time.
+                        Continued use of the platform means acceptance of updated terms.
+                    </p>
+
+                    <h5 class="fw-bold mt-4">9. Contact Information</h5>
+                    <p>
+                        If you have questions about these Terms, please contact us via
+                        the Contact page.
+                    </p>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <div class="text-center mt-4">
+            <a href="{{ url_for('main.home') }}"
+               class="btn btn-outline-primary rounded-pill px-4">
+                ← Back to Home
+            </a>
+        </div>
+
+    </div>
+</section>
+
+<style>
+.terms-section {
+    background: #f8f9fa;
+}
+
+.terms-content h5 {
+    color: #0d6efd;
+}
+
+.terms-content p {
+    color: #555;
+    line-height: 1.7;
+}
+
+/* Mobile Optimization */
+@media (max-width: 768px) {
+
+    .terms-content h5 {
+        font-size: 1.05rem;
+    }
+
+    .terms-content p {
+        font-size: 0.95rem;
+    }
+
+}
+</style>
+
+{% endblock %}

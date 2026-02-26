@@ -1,0 +1,121 @@
+{% extends "default.html" %}
+{% block content %}
+
+<section class="privacy-section py-5">
+    <div class="container">
+
+        <!-- Header -->
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Privacy Policy</h2>
+            <p class="text-muted">
+                Your privacy is important to us. This policy explains how we collect and use your information.
+            </p>
+        </div>
+
+        <!-- Policy Card -->
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4 p-md-5 privacy-content">
+
+                <h5 class="fw-bold mt-4">1. Information We Collect</h5>
+                <p>
+                    We may collect personal information such as your name, email address,
+                    phone number, and documents required for application processing.
+                </p>
+
+                <h5 class="fw-bold mt-4">2. How We Use Your Information</h5>
+                <p>
+                    Your information is used strictly for assisting in filling forms,
+                    processing applications, communication, and improving our services.
+                </p>
+
+                <h5 class="fw-bold mt-4">3. Document Handling</h5>
+                <p>
+                    Uploaded documents (Aadhaar, marksheets, certificates, etc.)
+                    are securely stored and used only for the intended application process.
+                </p>
+
+                <h5 class="fw-bold mt-4">4. Data Security</h5>
+                <p>
+                    We implement appropriate security measures to protect your personal data
+                    from unauthorized access, misuse, or disclosure.
+                </p>
+
+                <h5 class="fw-bold mt-4">5. Sharing of Information</h5>
+                <p>
+                    We do not sell or share your personal information with third parties
+                    except when required for form submission to official authorities.
+                </p>
+
+                <h5 class="fw-bold mt-4">6. Payment Information</h5>
+                <p>
+                    Payment details such as UPI transactions are used only for service verification.
+                    We do not store sensitive financial credentials.
+                </p>
+
+                <h5 class="fw-bold mt-4">7. Cookies & Analytics</h5>
+                <p>
+                    Our website may use basic cookies or analytics tools to improve user experience
+                    and track performance.
+                </p>
+
+                <h5 class="fw-bold mt-4">8. User Rights</h5>
+                <p>
+                    You may request access, correction, or deletion of your personal data
+                    by contacting us.
+                </p>
+
+                <h5 class="fw-bold mt-4">9. Changes to This Policy</h5>
+                <p>
+                    We reserve the right to update this Privacy Policy at any time.
+                    Continued use of our services means acceptance of updated terms.
+                </p>
+
+                <h5 class="fw-bold mt-4">10. Contact Us</h5>
+                <p>
+                    If you have any questions regarding this Privacy Policy,
+                    please contact us via the Contact page.
+                </p>
+
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <div class="text-center mt-4">
+            <a href="{{ url_for('main.home') }}"
+               class="btn btn-outline-primary rounded-pill px-4">
+                ← Back to Home
+            </a>
+        </div>
+
+    </div>
+</section>
+
+<style>
+.privacy-section {
+    background: #f8f9fa;
+}
+
+.privacy-content h5 {
+    color: #0d6efd;
+}
+
+.privacy-content p {
+    color: #555;
+    line-height: 1.7;
+}
+
+/* Mobile Optimization */
+@media (max-width: 768px) {
+
+    .privacy-content h5 {
+        font-size: 1.05rem;
+    }
+
+    .privacy-content p {
+        font-size: 0.95rem;
+    }
+
+}
+</style>
+
+{% endblock %}

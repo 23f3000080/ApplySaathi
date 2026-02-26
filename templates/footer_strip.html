@@ -1,0 +1,60 @@
+<div class="footer-strip bg-dark text-white py-3">
+    <div class="container">
+
+        <div class="row text-center text-md-start align-items-center gy-2">
+
+            <!-- Left Side -->
+            <div class="col-12 col-md-6">
+                <div class="d-flex flex-column flex-md-row justify-content-center justify-content-md-start gap-2">
+
+                    <a href="{{ url_for('main.terms') }}"
+                       class="text-white text-decoration-none footer-link">
+                        Terms & Conditions
+                    </a>
+
+                    <a href="{{ url_for('main.privacy') }}"
+                       class="text-white text-decoration-none footer-link">
+                        Privacy Policy
+                    </a>
+
+                </div>
+            </div>
+
+            <!-- Right Side -->
+            <div class="col-12 col-md-6 text-center text-md-end">
+                <span class="small">
+                    &copy; {{ current_year }} Apply Saathi. All rights reserved.
+                </span>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .footer-strip {
+    font-size: 0.9rem;
+}
+
+.footer-link {
+    transition: 0.3s;
+}
+
+.footer-link:hover {
+    color: #ffc107;
+}
+
+/* Mobile Optimization */
+@media (max-width: 768px) {
+
+    .footer-strip {
+        text-align: center;
+    }
+
+    .footer-link {
+        display: block;
+    }
+
+}
+</style>

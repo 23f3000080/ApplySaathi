@@ -1,0 +1,94 @@
+{% extends 'admin_side/default_admin.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+    <div class="card shadow border-0 rounded-4">
+        <div class="card-body p-4">
+
+            <h4 class="fw-bold mb-4">
+                <i class="bi bi-palette me-2 text-primary"></i>
+                Appearance Settings
+            </h4>
+
+            <!-- Theme -->
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Theme Mode</label>
+                <select id="themeSelect" class="form-select">
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                </select>
+            </div>
+
+            <!-- Font -->
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Font Family</label>
+                <select id="fontSelect" class="form-select">
+                    <option value="Poppins">Poppins</option>
+                    <option value="Inter">Inter</option>
+                    <option value="Roboto">Roboto</option>
+                    <option value="Montserrat">Montserrat</option>
+                </select>
+            </div>
+
+            <!-- Font Size -->
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Font Size</label>
+                <select id="fontSizeSelect" class="form-select">
+                    <option value="14px">Small</option>
+                    <option value="16px">Medium</option>
+                    <option value="18px">Large</option>
+                </select>
+            </div>
+
+            <!-- Primary Color -->
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Primary Color</label>
+                <input type="color" id="colorPicker" class="form-control form-control-color">
+            </div>
+
+            <button class="btn btn-primary rounded-pill px-4" onclick="saveSettings()">
+                Save Appearance
+            </button>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+    document.getElementById("themeSelect").value =
+        localStorage.getItem("theme") || "light";
+
+    document.getElementById("fontSelect").value =
+        localStorage.getItem("fontFamily") || "Poppins";
+
+    document.getElementById("fontSizeSelect").value =
+        localStorage.getItem("fontSize") || "16px";
+
+    document.getElementById("colorPicker").value =
+        localStorage.getItem("primaryColor") || "#0d6efd";
+});
+
+function saveSettings() {
+
+    localStorage.setItem("theme",
+        document.getElementById("themeSelect").value);
+
+    localStorage.setItem("fontFamily",
+        document.getElementById("fontSelect").value);
+
+    localStorage.setItem("fontSize",
+        document.getElementById("fontSizeSelect").value);
+
+    localStorage.setItem("primaryColor",
+        document.getElementById("colorPicker").value);
+
+    applySettings();
+}
+</script>
+{% endblock %}

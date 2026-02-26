@@ -1,0 +1,292 @@
+{% extends "default.html" %}
+
+{% block content %}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            
+            <div class="formfill card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4 p-xl-5">
+                    
+                    <!-- Header -->
+                    <div class="text-center mb-4">
+                        <div class="brand-icon mb-3">
+                            <i class="fas fa-file-alt fa-3x text-accent"></i>
+                        </div>
+                        <h3 class="fw-bold text-primary">Apply for a New Form</h3>
+                        <p class="text-secondary small">
+                            Fill in the details and upload required documents
+                        </p>
+                    </div>
+
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show rounded-3 mb-4">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST"
+                          action="{{ url_for('main.apply_form') }}"
+                          enctype="multipart/form-data"
+                          id="applicationForm">
+
+                        <!-- Form Type -->
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold">
+                                Form Type <span class="text-danger">*</span>
+                            </label>
+                            <select name="form_type" class="form-control-custom" required>
+                                <option value="" disabled selected>Select Form Type</option>
+                                <option value="Exam">📝 Exam Form</option>
+                                <option value="Scholarship">🎓 Scholarship</option>
+                                <option value="Government">🏛 Government</option>
+                                <option value="Job">💼 Job Application</option>
+                                <option value="Other">📋 Other</option>
+                            </select>
+                        </div>
+
+                        <!-- Form Name -->
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold">
+                                Form Name <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group-custom">
+                                <i class="icon fas fa-heading"></i>
+                                <input type="text"
+                                       name="form_name"
+                                       class="form-control-custom"
+                                       placeholder="e.g., UPSC Application 2026"
+                                       required>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold">
+                                Description (Optional)
+                            </label>
+                            <textarea name="description"
+                                      rows="4"
+                                      class="form-control-custom"
+                                      placeholder="Provide additional details..."></textarea>
+                        </div>
+
+                        <!-- Upload Section -->
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold">
+                                Upload Documents <span class="text-danger">*</span>
+                            </label>
+
+                            <div class="upload-area text-center p-4 mb-3"
+                                 id="uploadArea">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-accent mb-3"></i>
+                                <h6 class="fw-bold">Drag & Drop or Click to Upload</h6>
+                                <p class="small text-secondary">
+                                    Supported: PDF, JPG, PNG (Max 10MB each)
+                                </p>
+
+                                <input type="file"
+                                       id="fileInput"
+                                       name="documents"
+                                       class="d-none"
+                                       multiple
+                                       accept=".pdf,.jpg,.jpeg,.png">
+
+                                <button type="button"
+                                        class="btn-login btn-sm"
+                                        id="browseBtn">
+                                    <i class="fas fa-upload me-2"></i>Browse Files
+                                </button>
+                            </div>
+
+                            <div id="fileList"></div>
+                        </div>
+
+                        <!-- Submit -->
+                        <div class="d-grid">
+                            <button type="submit"
+                                    class="btn-register-submit py-3"
+                                    id="submitBtn">
+                                <i class="fas fa-paper-plane me-2"></i>
+                                Submit Application
+                            </button>
+                        </div>
+
+                        <div class="text-center mt-3">
+                            <a href="{{ url_for('main.dashboard') }}"
+                               class="small text-decoration-none">
+                                <i class="fas fa-arrow-left me-1"></i>
+                                Back to Dashboard
+                            </a>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const fileInput = document.getElementById("fileInput");
+    const fileList = document.getElementById("fileList");
+    const uploadArea = document.getElementById("uploadArea");
+    const browseBtn = document.getElementById("browseBtn");
+    const form = document.getElementById("applicationForm");
+    const submitBtn = document.getElementById("submitBtn");
+
+    const dt = new DataTransfer();
+    let formSubmitting = false;
+
+    // Click handlers
+    uploadArea.addEventListener("click", () => fileInput.click());
+    browseBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        fileInput.click();
+    });
+
+    // Drag & Drop
+    uploadArea.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        uploadArea.classList.add("active");
+    });
+
+    uploadArea.addEventListener("dragleave", () => {
+        uploadArea.classList.remove("active");
+    });
+
+    uploadArea.addEventListener("drop", (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove("active");
+        handleFiles(e.dataTransfer.files);
+    });
+
+    fileInput.addEventListener("change", () => {
+        handleFiles(fileInput.files);
+    });
+
+    function handleFiles(files) {
+        Array.from(files).forEach(file => {
+
+            // Duplicate check
+            if (Array.from(dt.files).some(f => f.name === file.name)) {
+                alert(`File "${file.name}" already added.`);
+                return;
+            }
+
+            // Size validation
+            if (file.size > 10 * 1024 * 1024) {
+                alert(`${file.name} exceeds 10MB.`);
+                return;
+            }
+
+            // Type validation
+            const allowed = ["application/pdf", "image/jpeg", "image/png"];
+            if (!allowed.includes(file.type)) {
+                alert(`${file.name} is not supported.`);
+                return;
+            }
+
+            dt.items.add(file);
+            renderFile(file);
+        });
+
+        fileInput.files = dt.files;
+    }
+
+    function renderFile(file) {
+        const div = document.createElement("div");
+        div.className = "file-card d-flex justify-content-between align-items-center";
+
+        div.innerHTML = `
+            <span>${file.name}</span>
+            <button type="button" class="btn btn-sm btn-danger">Remove</button>
+        `;
+
+        div.querySelector("button").addEventListener("click", () => {
+            removeFile(file.name);
+            div.remove();
+        });
+
+        fileList.appendChild(div);
+    }
+
+    function removeFile(name) {
+        const files = Array.from(dt.files);
+        dt.items.clear();
+        files.filter(f => f.name !== name)
+             .forEach(f => dt.items.add(f));
+        fileInput.files = dt.files;
+    }
+
+    form.addEventListener("submit", function (e) {
+
+        if (dt.files.length === 0) {
+            e.preventDefault();
+            alert("Please upload at least one document.");
+            return;
+        }
+
+        formSubmitting = true;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML =
+            '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
+    });
+
+    window.addEventListener("beforeunload", function (e) {
+        if (!formSubmitting && dt.files.length > 0) {
+            e.preventDefault();
+            e.returnValue = "";
+        }
+    });
+
+});
+</script>
+
+<style>
+.upload-area {
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.upload-area.active {
+    border-color: #e3931c;
+    background: rgba(227,147,28,0.08);
+}
+.file-card {
+    background: #f8f9fa;
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+@media (max-width: 576px) {
+    .upload-area {
+        padding: 20px !important;
+    }
+
+    .file-card {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 10px;
+    }
+}
+</style>
+
+{% endblock %}

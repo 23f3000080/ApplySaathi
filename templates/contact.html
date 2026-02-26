@@ -1,0 +1,150 @@
+{% extends "default.html" %}
+{% block content %}
+
+<section class="contact-section py-5">
+    <div class="container">
+
+        <!-- Heading -->
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Contact Us</h2>
+            <p class="text-muted">
+                Have questions? We're here to help you.
+            </p>
+        </div>
+
+        <div class="row g-4">
+
+            <!-- Contact Info -->
+            <div class="col-12 col-lg-5">
+                <div class="contact-info-card p-4 h-100">
+
+                    <h5 class="fw-bold mb-4">Get In Touch</h5>
+
+                    <div class="mb-3">
+                        <h6 class="fw-bold">📍 Address</h6>
+                        <p class="text-muted mb-0">
+                            Mithapur, Bihar, India
+                        </p>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="fw-bold">📞 Phone</h6>
+                        <p class="text-muted mb-0">
+                            +91 9142125921
+                        </p>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="fw-bold">📧 Email</h6>
+                        <p class="text-muted mb-0">
+                            support@applysaathi.com
+                        </p>
+                    </div>
+
+                    <hr>
+
+                    <a href="https://wa.me/919142125921"
+                       target="_blank"
+                       class="btn btn-success w-100 rounded-pill mt-3">
+                        💬 Chat on WhatsApp
+                    </a>
+
+                </div>
+            </div>
+
+            <!-- Contact Form -->
+            <div class="col-12 col-lg-7">
+                <div class="contact-form-card p-4">
+
+                    <h5 class="fw-bold mb-4">Send Us a Message</h5>
+
+                    <form method="POST" action="{{ url_for('main.contact') }}">
+
+                        <div class="row">
+                            <div class="col-12 col-md-6 mb-3">
+                                <label class="form-label">Full Name</label>
+                                <input type="text"
+                                       name="name"
+                                       class="form-control"
+                                       required>
+                            </div>
+
+                            <div class="col-12 col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email"
+                                       name="email"
+                                       class="form-control"
+                                       required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Subject</label>
+                            <input type="text"
+                                   name="subject"
+                                   class="form-control"
+                                   required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Message</label>
+                            <textarea name="message"
+                                      rows="5"
+                                      class="form-control"
+                                      required></textarea>
+                        </div>
+
+                        <button type="submit"
+                                class="btn btn-primary w-100 rounded-pill py-2">
+                            Send Message
+                        </button>
+
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<style>
+.contact-section {
+    background: #f8f9fa;
+}
+
+.contact-info-card,
+.contact-form-card {
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+.contact-info-card {
+    background: linear-gradient(135deg, #a90dfd6d, #6610f2);
+    color: white;
+}
+
+.contact-info-card p {
+    color: rgba(255,255,255,0.85);
+}
+
+.contact-form-card {
+    border: none;
+}
+
+/* Mobile Optimization */
+@media (max-width: 768px) {
+
+    .contact-info-card {
+        text-align: center;
+    }
+
+    .contact-form-card {
+        padding: 20px !important;
+    }
+
+}
+</style>
+
+{% endblock %}

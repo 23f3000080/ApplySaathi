@@ -1,0 +1,248 @@
+{% extends "default.html" %}
+
+{% block content %}
+
+<div class="container py-4">
+    <!-- Fill via WhatsApp Button -->
+    <div class="text-end mb-3">
+        <button class="btn btn-success rounded-pill px-4 shadow-sm"
+                data-bs-toggle="modal"
+                data-bs-target="#whatsappFormModal">
+            <i class="bi bi-whatsapp"></i> Fill via WhatsApp
+        </button>
+    </div>
+    <!-- Welcome Section -->
+    <div class="mb-4">
+        <h2 class="fw-bold">
+            Welcome, {{ current_user.name }} 👋
+        </h2>
+        <p class="text-muted">
+            Manage your submitted forms and track status here.
+        </p>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Total Applications</h6>
+                    <h3 class="fw-bold text-primary">
+                        {{ forms|length }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Completed</h6>
+                    <h3 class="fw-bold text-success">
+                        {{ forms|selectattr('status','equalto','Completed')|list|length }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">In Process</h6>
+                    <h3 class="fw-bold text-warning">
+                        {{ forms|selectattr('status','equalto','Inprocess')|list|length }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Applications Table -->
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body">
+
+            <h5 class="mb-3 fw-bold">Your Applications</h5>
+
+            {% if forms %}
+            <div class="table-responsive-md">
+                <table class="table table-hover align-middle">
+
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Form Name</th>
+                            <th>Status</th>
+                            <th>Date Applied</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for form in forms %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td data-label="Form Name">{{ form.form_name }}</td>
+                            <td data-label="Status">
+                                {% if form.status == "Approved" %}
+                                    <span class="badge bg-success">Approved</span>
+                                {% elif form.status == "Rejected" %}
+                                    <span class="badge bg-danger">Rejected</span>
+
+                                {% elif form.status == "Completed" %}
+                                    <span class="badge bg-primary">Completed</span>
+
+                                {% elif form.status == "Cancelled" %}
+                                    <span class="badge bg-danger">Cancelled</span>
+                                
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">In Process</span>
+                                {% endif %}
+                            </td>
+                            <td data-label="Date Applied">{{ form.created_at.strftime('%d %b %Y') }}</td>
+                            <td data-label="Action">
+                                <a href="{{ url_for('main.view_application', form_id=form.id) }}" class="btn btn-sm btn-outline-primary">
+                                    View Details
+                                </a>
+                                {% if form.status == "Inprocess" %}
+                                <form method="POST" action="{{ url_for('main.cancel_application', form_id=form.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger ms-2" onclick="return confirm('Are you sure you want to cancel this application?')">
+                                        Cancel
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+            <!-- apply another button -->
+
+            <div class="text-end mt-3">
+                <a href="{{ url_for('main.apply_form') }}" class="btn btn-outline-primary rounded-pill px-4">
+                    Apply Another Form
+                </a>
+            </div>
+
+            {% else %}
+
+            <!-- Empty State -->
+            <div class="text-center py-5">
+                <i class="bi bi-file-earmark-text display-4 text-muted"></i>
+                <h5 class="mt-3">No Applications Yet</h5>
+                <p class="text-muted">
+                    You haven’t submitted any forms yet.
+                </p>
+                <a href="{{ url_for('main.apply_form') }}" class="btn btn-primary rounded-pill px-4">
+                    Apply Now
+                </a>
+            </div>
+
+            {% endif %}
+
+        </div>
+    </div>
+
+</div>
+
+<!-- WhatsApp Form Modal -->
+<div class="modal fade" id="whatsappFormModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">Submit Details via WhatsApp</h5>
+        <button type="button" class="btn-close btn-close-white"
+                data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <form id="whatsappForm">
+
+          <div class="mb-3">
+            <label class="form-label">Full Name</label>
+            <input type="text" id="wa_name"
+                   class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Mobile Number</label>
+            <input type="text" id="wa_mobile"
+                   class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Form Name</label>
+            <input type="text" id="wa_form"
+                   class="form-control"
+                   placeholder="e.g. SSC, Scholarship, Govt Scheme"
+                   required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Additional Details</label>
+            <textarea id="wa_message"
+                      class="form-control"
+                      rows="3"
+                      placeholder="Optional details..."></textarea>
+          </div>
+
+          <button type="button"
+                  onclick="sendWhatsApp()"
+                  class="btn btn-success w-100">
+              Send to WhatsApp
+          </button>
+
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function sendWhatsApp() {
+
+    let name = document.getElementById("wa_name").value;
+    let mobile = document.getElementById("wa_mobile").value;
+    let form = document.getElementById("wa_form").value;
+    let message = document.getElementById("wa_message").value;
+
+    if (!name || !mobile || !form) {
+        alert("Please fill all required fields");
+        return;
+    }
+
+    let finalMessage =
+        "📝 *New Form Fill Request*\n\n" +
+        "👤 Name: " + name + "\n" +
+        "📱 Mobile: " + mobile + "\n" +
+        "📄 Form Name: " + form + "\n\n" +
+        (message ? "🗒 Details: " + message + "\n\n" : "") +
+
+        "💰 *Service Charge: ₹49*\n" +
+        "⚠ Government Form Fee will be extra.\n\n" +
+
+        "📲 *Payment Details*\n" +
+        "UPI ID: 9142125921@ybl\n" +
+        "Amount: ₹49\n\n" +
+
+        "✅ After payment, please send:\n" +
+        "1️⃣ Payment Screenshot\n" +
+        "2️⃣ Required Documents\n\n" +
+
+        "Thank you for choosing Apply Saathi 🙏";
+
+    let phoneNumber = "919142125921"; // Your WhatsApp number
+
+    let url = "https://wa.me/" + phoneNumber +
+              "?text=" + encodeURIComponent(finalMessage);
+
+    window.open(url, "_blank");
+}
+</script>
+{% endblock %}
