@@ -1,7 +1,12 @@
 <nav class="navbar navbar-expand-lg navbar-dark sticky-top navbar-custom">
   <div class="container">
-    <a class="navbar-brand fw-bold fs-3" href="{{ url_for('main.home') }}">
-      Apply<span class="text-accent">Saathi</span>
+    <a class="navbar-brand d-flex align-items-center fw-bold fs-4" href="{{ url_for('main.home') }}">
+      <img src="{{ url_for('static', filename='images/Favicon.png') }}" alt="ApplySaathi Logo" class="nav-logo me-3">
+    
+      <!-- Hide text on mobile, show from md and above -->
+      <span class="d-none d-md-inline">
+        Apply<span class="text-accent">Saathi</span>
+      </span>
     </a>
 
     <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">

@@ -183,7 +183,7 @@
 /* Image Side Styling */
 .register-image-side {
     /* image from static/images/register_img */
-    background: url('../images/register_img.png') center/cover no-repeat;
+    background: url('../images/register_img.webp') center/cover no-repeat;
     height: 100%;
     min-height: 600px;
 }
@@ -432,4 +432,11 @@ section .btn-warning:hover {
         white-space: normal;   /* Allow wrap on very small screens */
         word-break: break-word;
     }
+}
+
+.nav-logo {
+    height: 42px;
+    width: 60px;
+    object-fit: cover;
+    /* border-radius: 50%;   🔥 Makes it round */
 }
