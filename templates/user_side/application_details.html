@@ -92,16 +92,27 @@
                         </div>
             
                         <!-- Right Side -->
-                        <a href="{{ url_for('static', filename=doc.file_path) }}" class="btn btn-sm btn-outline-primary view-btn"
-                            target="_blank">
-                            <i class="fas fa-download me-1"></i> View
-                        </a>
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('main.view_document', doc_id=doc.id) }}"
+                               target="_blank"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye me-1"></i> View
+                            </a>
+                        
+                        </div>
             
                     </div>
                     {% endfor %}
+                    <!-- if status completed then -->
+                    {% elif form.status == "Completed" %}
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-check-circle fa-2x mb-2"></i>
+                        <p class="mb-0">Your application has been completed successfully. No additional documents are required.</p>
+                    </div>
                     {% else %}
                     <div class="text-center text-muted py-3">
-                        No documents uploaded.
+                        <i class="bi bi-x-circle fa-2x mb-2"></i>
+                        <p class="mb-0">No documents uploaded yet.</p>
                     </div>
                     {% endif %}
             
@@ -164,6 +175,15 @@
                     <p class="small text-secondary mb-3">
                         Pay securely via UPI to complete your application.
                     </p>
+
+                    <!-- if payment screenshot is available -->
+                    {% if payment_screenshot_url %}
+                    <div class="mb-2">
+                        <a href="{{ payment_screenshot_url }}" target="_blank" class="btn btn-primary btn-sm">
+                            <i class="fas fa-image me-1"></i> View Payment Screenshot
+                        </a>
+                    </div>
+                    {% endif %}
             
                     {% if form.payment_status == "Paid" %}
             
@@ -206,10 +226,33 @@
                         <span class="text-dark">+91 9142125921</span>
                     </div>
             
-                    <!-- Pay Button -->
-                    <a href="upi://pay?pa=9142125921@ybl&pn=ApplySaathi&am=49&cu=INR" class="btn btn-success btn-sm w-100 mb-2">
-                        <i class="fas fa-wallet me-1"></i> Pay ₹49 Now
-                    </a>
+                    <!-- Pay Form Fee -->
+                    <div class="card shadow-sm border-0 rounded-4 mt-4">
+                        <div class="card-body p-4">
+                    
+                            <h6 class="fw-semibold mb-3">
+                                <i class="fas fa-wallet me-2 text-primary"></i>
+                                Pay Form Fee
+                            </h6>
+                    
+                            <div class="mb-3">
+                                <label for="baseFee" class="form-label">Enter Form Fee (₹)</label>
+                                <input type="number" id="baseFee" class="form-control" placeholder="e.g., 200" min="0">
+                                <small class="text-muted">Enter the fee for your form/exam</small>
+                            </div>
+                    
+                            <div class="mb-3">
+                                <label class="form-label">Total Amount (₹)</label>
+                                <input type="text" id="totalFee" class="form-control" value="₹0" readonly>
+                                <small class="text-muted">Includes ₹49 service charge</small>
+                            </div>
+                    
+                            <a id="payButton" href="#" class="btn btn-success btn-sm w-100 mb-2">
+                                <i class="fas fa-wallet me-1"></i> Pay ₹0 Now
+                            </a>
+                    
+                        </div>
+                    </div>
             
                     <!-- Confirm Button -->
                         <button class="btn btn-outline-primary btn-sm w-100" data-bs-toggle="modal" data-bs-target="#paymentModal">
@@ -222,13 +265,13 @@
             </div>
 
             <!-- Receipt -->
-            {% if form.recipt %}
-            <div class="card shadow-sm border-0 rounded-3">
+            {% if receipt_url %}
+            <div class="card bg-light shadow-sm border-0 rounded-3">
                 <div class="card-body text-center">
 
                     <h6 class="text-secondary mb-3">Receipt</h6>
 
-                    <a href="{{ url_for('static', filename=form.recipt) }}"
+                    <a href="{{ receipt_url }}"
                        target="_blank"
                        class="btn btn-outline-success btn-sm">
                         <i class="fas fa-receipt me-1"></i> View Receipt
@@ -329,6 +372,20 @@ document.addEventListener("DOMContentLoaded", function () {
             transactionField.classList.remove("d-none");
         }
 
+    });
+
+     const baseFeeInput = document.getElementById('baseFee');
+    const totalFeeInput = document.getElementById('totalFee');
+    const payButton = document.getElementById('payButton');
+    const serviceCharge = 49;
+
+    baseFeeInput.addEventListener('input', () => {
+        let baseFee = parseFloat(baseFeeInput.value) || 0;
+        let total = baseFee + serviceCharge;
+
+        totalFeeInput.value = `₹${total.toFixed(2)}`;
+        payButton.href = `upi://pay?pa=9142125921@ybl&pn=ApplySaathi&am=${total}&cu=INR`;
+        payButton.innerHTML = `<i class="fas fa-wallet me-1"></i> Pay ₹${total.toFixed(2)} Now`;
     });
 
 });

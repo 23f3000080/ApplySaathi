@@ -1,72 +1,112 @@
 import uuid
+import os
+from datetime import datetime
 
 from flask import Flask, session
+from dotenv import load_dotenv
+
 from extensions import db, bcrypt, login_manager
 from models import User, Admin
-from datetime import datetime
-import os
-from dotenv import load_dotenv
+
+# =====================================
+# 🔐 Load Environment Variables
+# =====================================
 
 load_dotenv()
 
-
 app = Flask(__name__)
 
-app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+# =====================================
+# 🔐 Basic Config
+# =====================================
+
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["MAX_CONTENT_LENGTH"] = 60 * 1024 * 1024  # 60MB limit
+
+# =====================================
+# ☁️ Backblaze B2 Config
+# =====================================
+
+app.config["B2_BUCKET_NAME"] = os.getenv("B2_BUCKET_NAME")
+app.config["B2_ENDPOINT"] = os.getenv("B2_ENDPOINT")
+app.config["B2_ACCESS_KEY"] = os.getenv("B2_ACCESS_KEY")
+app.config["B2_SECRET_KEY"] = os.getenv("B2_SECRET_KEY")
+
+# Validate B2 credentials
+if not all([
+    app.config["B2_BUCKET_NAME"],
+    app.config["B2_ENDPOINT"],
+    app.config["B2_ACCESS_KEY"],
+    app.config["B2_SECRET_KEY"],
+]):
+    raise ValueError("Backblaze B2 credentials missing in environment variables")
+
+# =====================================
+# 🚀 Initialize Extensions
+# =====================================
 
 db.init_app(app)
 bcrypt.init_app(app)
 login_manager.init_app(app)
+
 login_manager.login_view = "main.login"
 login_manager.login_message = "Please login to access this page."
 login_manager.login_message_category = "warning"
 
+# =====================================
+# 👤 User Loader
+# =====================================
+
 @login_manager.user_loader
 def load_user(user_id):
-
     role = session.get("role")
-
     if role == "admin":
-        return Admin.query.get(int(user_id))
-    else:
-        return User.query.get(int(user_id))
+        return db.session.get(Admin, int(user_id))
+    return db.session.get(User, int(user_id))
+
+# =====================================
+# 📅 Inject Year
+# =====================================
 
 @app.context_processor
 def inject_year():
     return {"current_year": datetime.now().year}
 
-# 🔥 Import blueprint
+# =====================================
+# 🔵 Blueprints
+# =====================================
+
 from routes import main
 app.register_blueprint(main)
 
+# =====================================
+# 👑 Create Default Superadmin
+# =====================================
+
 def create_superadmin():
-    existing_superadmin = Admin.query.filter_by(role="superadmin").first()
-
-    if not existing_superadmin:
-        print("Creating default superadmin...")
-
+    existing = Admin.query.filter_by(role="superadmin").first()
+    if not existing:
         superadmin = Admin(
-            # 6 char UUID for admin_id capital characters only
             admin_id=str(uuid.uuid4())[:6].upper(),
             name="Super Admin",
             email="superadmin@gmail.com",
             role="superadmin",
-            is_active=True
+            is_active=True,
         )
-
-        superadmin.set_password("Admin@123")  # 🔥 Change later in production
-
+        superadmin.set_password("Admin@123")
         db.session.add(superadmin)
         db.session.commit()
+        print("Superadmin created!")
 
-        print("Superadmin created successfully!")
-    else:
-        print("Superadmin already exists.")
+# =====================================
+# ▶ Run App
+# =====================================
 
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
         create_superadmin()
+
     app.run(debug=True)

@@ -150,8 +150,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("applicationForm");
     const submitBtn = document.getElementById("submitBtn");
 
-    const dt = new DataTransfer();
-    let formSubmitting = false;
+    let selectedFiles = [];
 
     // Click handlers
     uploadArea.addEventListener("click", () => fileInput.click());
@@ -173,86 +172,71 @@ document.addEventListener("DOMContentLoaded", function () {
     uploadArea.addEventListener("drop", (e) => {
         e.preventDefault();
         uploadArea.classList.remove("active");
-        handleFiles(e.dataTransfer.files);
+        fileInput.files = e.dataTransfer.files;
+        renderFiles();
     });
 
+    // When user selects files normally
     fileInput.addEventListener("change", () => {
-        handleFiles(fileInput.files);
+        renderFiles();
     });
 
-    function handleFiles(files) {
-        Array.from(files).forEach(file => {
+    function renderFiles() {
+        fileList.innerHTML = "";
+        selectedFiles = Array.from(fileInput.files);
 
-            // Duplicate check
-            if (Array.from(dt.files).some(f => f.name === file.name)) {
-                alert(`File "${file.name}" already added.`);
-                return;
-            }
+        selectedFiles.forEach((file, index) => {
 
-            // Size validation
             if (file.size > 10 * 1024 * 1024) {
                 alert(`${file.name} exceeds 10MB.`);
+                fileInput.value = "";
+                fileList.innerHTML = "";
                 return;
             }
 
-            // Type validation
             const allowed = ["application/pdf", "image/jpeg", "image/png"];
             if (!allowed.includes(file.type)) {
                 alert(`${file.name} is not supported.`);
+                fileInput.value = "";
+                fileList.innerHTML = "";
                 return;
             }
 
-            dt.items.add(file);
-            renderFile(file);
-        });
+            const div = document.createElement("div");
+            div.className = "file-card d-flex justify-content-between align-items-center";
 
-        fileInput.files = dt.files;
+            div.innerHTML = `
+                <span>${file.name}</span>
+                <button type="button" class="btn btn-sm btn-danger">Remove</button>
+            `;
+
+            div.querySelector("button").addEventListener("click", () => {
+                removeFile(index);
+            });
+
+            fileList.appendChild(div);
+        });
     }
 
-    function renderFile(file) {
-        const div = document.createElement("div");
-        div.className = "file-card d-flex justify-content-between align-items-center";
-
-        div.innerHTML = `
-            <span>${file.name}</span>
-            <button type="button" class="btn btn-sm btn-danger">Remove</button>
-        `;
-
-        div.querySelector("button").addEventListener("click", () => {
-            removeFile(file.name);
-            div.remove();
-        });
-
-        fileList.appendChild(div);
-    }
-
-    function removeFile(name) {
-        const files = Array.from(dt.files);
-        dt.items.clear();
-        files.filter(f => f.name !== name)
-             .forEach(f => dt.items.add(f));
+    function removeFile(index) {
+        const dt = new DataTransfer();
+        selectedFiles.splice(index, 1);
+        selectedFiles.forEach(file => dt.items.add(file));
         fileInput.files = dt.files;
+        renderFiles();
     }
 
     form.addEventListener("submit", function (e) {
 
-        if (dt.files.length === 0) {
+        if (fileInput.files.length === 0) {
             e.preventDefault();
             alert("Please upload at least one document.");
             return;
         }
 
-        formSubmitting = true;
         submitBtn.disabled = true;
         submitBtn.innerHTML =
             '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
-    });
-
-    window.addEventListener("beforeunload", function (e) {
-        if (!formSubmitting && dt.files.length > 0) {
-            e.preventDefault();
-            e.returnValue = "";
-        }
     });
 
 });

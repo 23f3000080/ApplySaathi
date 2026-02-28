@@ -1,3 +1,5 @@
+from email.mime import application
+
 from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app, session
 from flask_login import login_user, logout_user, login_required, current_user
 from extensions import db
@@ -6,13 +8,14 @@ import os
 from werkzeug.utils import secure_filename
 from functools import wraps
 import uuid
+# from supabase_client import get_supabase
+import uuid
+import io
+
 
 main = Blueprint("main", __name__)
 
-UPLOAD_FOLDER = "static/uploads"
-
 # generate 6char capital random user id
-import uuid
 def generate_user_id():
     return str(uuid.uuid4())[:6].upper()
 
@@ -197,22 +200,35 @@ def reset_password_simple(email):
 def help():
     return 'Help page'
 
+# ==============================
+# 🔹 APPLY FORM (Supabase Upload)
+# ==============================
+
 @main.route("/apply-form", methods=["GET", "POST"])
 @login_required
 def apply_form():
+
     if request.method == "POST":
+
+        form_type = request.form.get("form_type")
+        form_name = request.form.get("form_name")
+        description = request.form.get("description", "")
+
+        if not form_type or not form_name:
+            flash("Please fill required fields.", "danger")
+            return redirect(url_for("main.apply_form"))
+
+        files = request.files.getlist("documents")
+
+        if not files or files[0].filename == "":
+            flash("Please upload at least one document.", "warning")
+            return redirect(url_for("main.apply_form"))
+
+        ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "pdf"}
+        MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+
         try:
-            # Get form data
-            form_type = request.form.get("form_type")
-            form_name = request.form.get("form_name")
-            description = request.form.get("description", "").strip()
-
-            # Validate required fields
-            if not form_type or not form_name:
-                flash("Please fill in all required fields.", "danger")
-                return redirect(url_for("main.apply_form"))
-
-            # Create form entry
+            # Create application entry
             new_form = FormApplication(
                 form_type=form_type,
                 form_name=form_name,
@@ -222,86 +238,86 @@ def apply_form():
             )
 
             db.session.add(new_form)
-            db.session.flush()  # Get ID before commit
-
-            # ✅ FIXED HERE
-            files = request.files.getlist("documents")
-
-            if not files or all(file.filename == "" for file in files):
-                db.session.rollback()
-                flash("Please upload at least one document.", "warning")
-                return redirect(url_for("main.apply_form"))
-
-            # Allowed types
-            ALLOWED_TYPES = {"application/pdf", "image/jpeg", "image/png"}
-            MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
-
-            upload_folder = os.path.join(
-                current_app.root_path,
-                "static",
-                "uploads",
-                "applications"
-            )
-            os.makedirs(upload_folder, exist_ok=True)
+            db.session.flush()  # get ID
 
             uploaded_count = 0
 
+            from b2_service import upload_file_to_b2
+
             for file in files:
-                if file and file.filename:
 
-                    # Validate file type
-                    if file.content_type not in ALLOWED_TYPES:
-                        db.session.rollback()
-                        flash("Invalid file type uploaded.", "danger")
-                        return redirect(url_for("main.apply_form"))
+                if file.filename == "":
+                    continue
 
-                    # Validate file size
-                    file.seek(0, os.SEEK_END)
-                    file_size = file.tell()
-                    file.seek(0)
+                file_ext = file.filename.rsplit(".", 1)[-1].lower()
 
-                    if file_size > MAX_FILE_SIZE:
-                        db.session.rollback()
-                        flash("File exceeds maximum size of 10MB.", "danger")
-                        return redirect(url_for("main.apply_form"))
+                if file_ext not in ALLOWED_EXTENSIONS:
+                    flash(f"{file.filename} has invalid file type.", "danger")
+                    continue
 
-                    original_filename = secure_filename(file.filename)
-                    extension = os.path.splitext(original_filename)[1]
-                    unique_filename = f"{uuid.uuid4().hex}{extension}"
+                # Move pointer to end to check size
+                file.seek(0, os.SEEK_END)
+                file_size = file.tell()
+                file.seek(0)
 
-                    file_path = os.path.join(upload_folder, unique_filename)
-                    file.save(file_path)
+                if file_size == 0:
+                    flash(f"{file.filename} is empty.", "danger")
+                    continue
 
-                    document = Document(
-                        document_name=original_filename,
-                        file_path=f"uploads/applications/{unique_filename}",
-                        document_size=file_size,
-                        file_type=file.content_type,
-                        form_id=new_form.id,
-                    )
+                if file_size > MAX_FILE_SIZE:
+                    flash(f"{file.filename} exceeds 10MB limit.", "danger")
+                    continue
 
-                    db.session.add(document)
-                    uploaded_count += 1
+                # Generate unique filename
+                unique_filename = f"user_{current_user.id}/form_{new_form.id}/{uuid.uuid4().hex}.{file_ext}"
+
+                # Upload to Backblaze B2
+                upload_file_to_b2(file, unique_filename)
+
+                # Save document in DB
+                document = Document(
+                    document_name=file.filename,
+                    file_path=unique_filename,  # 👈 store B2 key only
+                    document_size=file_size,
+                    file_type=file.content_type,
+                    form_id=new_form.id,
+                )
+
+                db.session.add(document)
+                uploaded_count += 1
+
+            if uploaded_count == 0:
+                db.session.rollback()
+                flash("No valid documents uploaded.", "danger")
+                return redirect(url_for("main.apply_form"))
 
             db.session.commit()
 
-            flash(
-                f"Application submitted successfully! {uploaded_count} document(s) uploaded.",
-                "success",
-            )
-
+            flash("Application submitted successfully!", "success")
             return redirect(url_for("main.dashboard"))
 
         except Exception as e:
             db.session.rollback()
-
-            # Log error instead of exposing
-            current_app.logger.error(f"Application Error: {e}")
-
+            current_app.logger.error(f"Upload Error: {e}")
             flash("Something went wrong. Please try again.", "danger")
             return redirect(url_for("main.apply_form"))
 
     return render_template("user_side/formApply.html")
+
+@main.route("/view-document/<int:doc_id>")
+@login_required
+def view_document(doc_id):
+
+    document = Document.query.get_or_404(doc_id)
+
+    print("FILE PATH FROM DB:", document.file_path)
+
+    from b2_service import generate_signed_url
+    signed_url = generate_signed_url(document.file_path, expiry=600)
+
+    print("SIGNED URL:", signed_url)
+
+    return redirect(signed_url)
 
 # cancel application route
 @main.route("/cancel-application/<int:form_id>", methods=["POST"])
@@ -333,8 +349,20 @@ def view_application(form_id):
         flash("Application not found.", "danger")
         return redirect(url_for("main.dashboard"))
 
+    # payment screenshot
+    payment_screenshot_url = None
+    if form.payment_screenshot:
+        from b2_service import generate_signed_url
+        payment_screenshot_url = generate_signed_url(form.payment_screenshot, expiry=600)
+
+    # recipt
+    receipt_url = None
+    if form.recipt:
+        from b2_service import generate_signed_url
+        receipt_url = generate_signed_url(form.recipt, expiry=600)
+
     documents = Document.query.filter_by(form_id=form.id).all()
-    return render_template("user_side/application_details.html", form=form, documents=documents)
+    return render_template("user_side/application_details.html", form=form, documents=documents, payment_screenshot_url=payment_screenshot_url, receipt_url=receipt_url)
 
 @main.route("/mark-payment/<int:form_id>")
 @login_required
@@ -355,10 +383,16 @@ def mark_payment_done(form_id):
     flash("Payment marked as completed. We will verify shortly.", "success")
     return redirect(url_for("main.view_application", form_id=form.id))
 
+from b2_service import upload_file_to_b2
+import uuid
+import os
+
+
 @main.route("/submit-payment/<int:form_id>", methods=["POST"])
 @login_required
 def submit_payment(form_id):
 
+    # 🔐 Ensure user owns this form
     form = FormApplication.query.filter_by(
         id=form_id,
         user_id=current_user.id
@@ -372,35 +406,72 @@ def submit_payment(form_id):
     transaction_id = request.form.get("transaction_id")
     screenshot = request.files.get("payment_screenshot")
 
-    screenshot_path = None
+    screenshot_key = None
 
     if screenshot and screenshot.filename:
-        filename = secure_filename(screenshot.filename)
-        unique_name = f"{uuid.uuid4().hex}_{filename}"
 
-        upload_folder = os.path.join(
-            current_app.root_path,
-            "static",
-            "uploads",
-            "payments"
-        )
-        os.makedirs(upload_folder, exist_ok=True)
+        ALLOWED_TYPES = {"image/jpeg", "image/png", "application/pdf"}
+        MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 
-        file_path = os.path.join(upload_folder, unique_name)
-        screenshot.save(file_path)
+        # ✅ Validate file type
+        if screenshot.content_type not in ALLOWED_TYPES:
+            flash("Invalid file type. Only JPG, PNG, PDF allowed.", "danger")
+            return redirect(url_for("main.view_application", form_id=form.id))
 
-        screenshot_path = f"uploads/payments/{unique_name}"
+        # ✅ Validate file size
+        screenshot.seek(0, os.SEEK_END)
+        file_size = screenshot.tell()
+        screenshot.seek(0)
 
-    # Save payment details (add columns if not exists)
-    form.payment_status = "Pending Verification"
+        if file_size > MAX_FILE_SIZE:
+            flash("File exceeds maximum size of 10MB.", "danger")
+            return redirect(url_for("main.view_application", form_id=form.id))
+
+        try:
+            # 🔥 Generate unique filename
+            file_ext = screenshot.filename.split(".")[-1]
+            unique_filename = f"{uuid.uuid4().hex}.{file_ext}"
+
+            # 🔥 Organize inside bucket
+            screenshot_key = f"user_{current_user.id}/form_{form.id}/payment/{unique_filename}"
+
+            # ✅ Upload to B2 (PRIVATE)
+            upload_file_to_b2(screenshot, screenshot_key)
+
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"B2 Payment Upload Error: {e}")
+            flash("Error uploading payment screenshot.", "danger")
+            return redirect(url_for("main.view_application", form_id=form.id))
+
+    # ✅ Save payment details in DB
     form.payment_method = payment_method
     form.transaction_id = transaction_id
-    form.payment_screenshot = screenshot_path
+    form.payment_screenshot = screenshot_key
+    form.payment_status = "Pending Verification"
 
     db.session.commit()
 
     flash("Payment submitted successfully. Awaiting verification.", "success")
     return redirect(url_for("main.view_application", form_id=form.id))
+
+@main.route("/view-payment/<int:form_id>")
+@login_required
+def view_payment(form_id):
+
+    form = FormApplication.query.filter_by(
+        id=form_id,
+        user_id=current_user.id
+    ).first_or_404()
+
+    if not form.payment_screenshot:
+        flash("No payment screenshot uploaded.", "warning")
+        return redirect(url_for("main.view_application", form_id=form.id))
+
+    from b2_service import generate_signed_url
+    signed_url = generate_signed_url(form.payment_screenshot, expiry=600)
+
+    return redirect(signed_url)
 
 @main.route("/profile")
 @login_required
@@ -733,7 +804,29 @@ def admin_change_password():
 @admin_required
 def admin_view_application(app_id):
     app = FormApplication.query.get_or_404(app_id)
-    return render_template("admin_side/view_application.html", application=app)
+
+    # Fetch related user and documents
+    user = User.query.get(app.user_id)
+    documents = Document.query.filter_by(form_id=app.id).all()
+
+    # signed URLs for documents
+    from b2_service import generate_signed_url
+    for doc in documents:
+        doc.signed_url = generate_signed_url(doc.file_path, expiry=600)
+
+    signed_receipt_url = None
+    if app.recipt:
+        from b2_service import generate_signed_url
+        signed_receipt_url = generate_signed_url(app.recipt, expiry=600)
+
+    # payment screenshot URL
+    signed_payment_url = None
+    if app.payment_screenshot:
+        from b2_service import generate_signed_url
+        signed_payment_url = generate_signed_url(app.payment_screenshot, expiry=600)
+        
+    return render_template("admin_side/view_application.html", application=app, user=user, documents=documents, signed_receipt_url=signed_receipt_url, signed_payment_url=signed_payment_url)
+
 
 @main.route("/admin/application/<int:id>/update", methods=["POST"])
 @login_required
@@ -766,45 +859,95 @@ def allowed_file(filename):
 def upload_receipt(id):
 
     application = FormApplication.query.get_or_404(id)
-
     file = request.files.get("receipt")
 
     if not file or file.filename == "":
-        flash("No file selected", "danger")
+        flash("No file selected.", "danger")
         return redirect(url_for("main.admin_view_application", app_id=id))
 
-    if not allowed_file(file.filename):
+    ALLOWED_TYPES = {"application/pdf", "image/jpeg", "image/png"}
+    MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+
+    # ✅ Validate file type
+    if file.content_type not in ALLOWED_TYPES:
         flash("Invalid file type. Only PDF, JPG, PNG allowed.", "danger")
         return redirect(url_for("main.admin_view_application", app_id=id))
 
-    # Secure original filename
-    original_filename = secure_filename(file.filename)
+    try:
+        # ✅ Validate file size
+        file.seek(0, os.SEEK_END)
+        file_size = file.tell()
+        file.seek(0)
 
-    # Generate unique filename (prevents overwrite)
-    unique_name = f"{uuid.uuid4().hex}_{original_filename}"
+        if file_size > MAX_FILE_SIZE:
+            flash("File exceeds maximum size of 10MB.", "danger")
+            return redirect(url_for("main.admin_view_application", app_id=id))
 
-    # Absolute folder path (for saving)
-    upload_folder = os.path.join(current_app.static_folder, "receipts")
-    os.makedirs(upload_folder, exist_ok=True)
+        # 🔥 Generate unique filename
+        file_ext = file.filename.rsplit(".", 1)[-1]
+        unique_filename = f"{uuid.uuid4().hex}.{file_ext}"
 
-    absolute_path = os.path.join(upload_folder, unique_name)
+        # 🔐 Store inside private B2 bucket
+        receipt_key = f"admin/receipts/application_{application.id}/{unique_filename}"
 
-    # Save file
-    file.save(absolute_path)
+        # ✅ Upload to B2
+        upload_file_to_b2(file, receipt_key)
 
-    # 🔥 IMPORTANT: Store URL-safe relative path (forward slash only)
-    relative_path = f"receipts/{unique_name}"
+        # ==============================
+        # 💾 Save in Database
+        # ==============================
 
-    # Update database
-    application.recipt = relative_path
-    application.status = "Completed"
-    application.filled_by_admin_id = current_user.id
+        application.recipt = receipt_key  # store ONLY object key
+        application.status = "Completed"
+        application.filled_by_admin_id = current_user.id
 
-    db.session.commit()
+        db.session.commit()
 
-    flash("Receipt uploaded successfully!", "success")
+        flash("Receipt uploaded successfully!", "success")
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"B2 Receipt Upload Error: {e}")
+        flash("Something went wrong while uploading receipt.", "danger")
 
     return redirect(url_for("main.admin_view_application", app_id=id))
+
+@main.route("/view-receipt/<int:form_id>")
+@login_required
+def user_view_receipt(form_id):
+    form = FormApplication.query.get_or_404(form_id)
+    
+    # 🔐 Only owner can access
+    if form.user_id != current_user.id:
+        flash("Unauthorized access.", "danger")
+        return redirect(url_for("main.dashboard"))
+
+    # Check if receipt exists
+    if not form.recipt:
+        flash("No receipt uploaded for this application.", "warning")
+        return redirect(url_for("main.view_application", form_id=form.id))
+
+    # Generate signed URL safely
+    from b2_service import generate_signed_url
+    signed_url = generate_signed_url(form.recipt, expiry=600)
+
+    return redirect(signed_url)
+
+# admin view receipt route
+@main.route("/admin/view-receipt/<int:app_id>")
+@login_required
+@admin_required
+def admin_view_receipt(app_id):
+    application = FormApplication.query.get_or_404(app_id)
+
+    if not application.recipt:
+        flash("No receipt uploaded for this application.", "warning")
+        return redirect(url_for("main.admin_view_application", app_id=app_id))
+
+    from b2_service import generate_signed_url
+    signed_url = generate_signed_url(application.recipt, expiry=600)
+
+    return redirect(signed_url)
 
 @main.route("/admin/application/<int:id>/toggle-payment", methods=["POST"])
 @login_required

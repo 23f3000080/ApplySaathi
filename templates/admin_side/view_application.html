@@ -117,36 +117,48 @@
             <!-- Documents -->
             <div class="card shadow-sm border-0 rounded-4">
                 <div class="card-body p-4">
-
+            
                     <h5 class="fw-semibold mb-3">
                         <i class="bi bi-folder2-open me-2 text-primary"></i>
                         Uploaded Documents
                     </h5>
-
-                    {% if application.documents %}
-                        {% for doc in application.documents %}
-                        <div class="d-flex justify-content-between align-items-center bg-light rounded-3 p-3 mb-2 flex-wrap">
-
-                            <div class="text-truncate" style="max-width: 70%;">
-                                <strong>{{ doc.document_name }}</strong><br>
-                                <small class="text-muted">
-                                    {{ doc.file_type }} • 
-                                    {{ (doc.document_size / 1024)|round(2) }} KB
-                                </small>
-                            </div>
-
-                            <a href="{{ url_for('static', filename=doc.file_path) }}"
-                               target="_blank"
-                               class="btn btn-sm btn-outline-primary rounded-pill">
-                                <i class="bi bi-eye me-1"></i> View
-                            </a>
-
+            
+                    {% if documents %}
+                    {% for doc in documents %}
+                    <div class="d-flex justify-content-between align-items-center bg-light rounded-3 p-3 mb-2 flex-wrap">
+            
+                        <div class="text-truncate" style="max-width: 70%;">
+                            <strong>{{ doc.document_name or "Document" }}</strong><br>
+                            <small class="text-muted">
+                                {{ doc.file_type or "Unknown type" }} •
+                                {% if doc.document_size %}
+                                {{ (doc.document_size / 1024)|round(2) }} KB
+                                {% endif %}
+                            </small>
                         </div>
-                        {% endfor %}
+            
+                        {% if doc.signed_url %}
+                        <a href="{{ doc.signed_url }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill">
+                            <i class="bi bi-eye me-1"></i> View
+                        </a>
+                        {% else %}
+                        <span class="text-muted small">No file available</span>
+                        {% endif %}
+            
+                    </div>
+                    {% endfor %}
+                    {% elif application.status == "Completed" %}
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-check-circle fa-2x mb-2"></i>
+                        <p class="mb-0">Application has been completed successfully.</p>
+                    </div>
                     {% else %}
-                        <div class="text-muted">No documents uploaded.</div>
+                    <div class="text-center text-muted py-3">
+                        <i class="bi bi-x-circle fa-2x mb-2"></i>
+                        <p class="mb-0">No documents uploaded.</p>
+                    </div>
                     {% endif %}
-
+            
                 </div>
             </div>
 
@@ -181,8 +193,8 @@
                         </span>
                     </p>
             
-                    {% if application.payment_screenshot %}
-                    <a href="{{ url_for('static', filename=application.payment_screenshot) }}" target="_blank"
+                    {% if signed_payment_url %}
+                    <a href="{{ signed_payment_url }}" target="_blank"
                         class="btn btn-sm btn-outline-secondary rounded-pill mb-3">
                         <i class="bi bi-image me-1"></i> View Screenshot
                     </a>
@@ -274,10 +286,9 @@
                         Upload Final Receipt
                     </h6>
             
-                    {% if application.recipt %}
+                    {% if signed_receipt_url %}
                     <div class="mb-3">
-                        <a href="{{ url_for('static', filename=application.recipt) }}" target="_blank"
-                            class="btn btn-outline-success btn-sm rounded-pill">
+                        <a href="{{ signed_receipt_url }}" target="_blank" class="btn btn-outline-success btn-sm rounded-pill">
                             <i class="bi bi-eye me-1"></i> View Uploaded Receipt
                         </a>
                     </div>
